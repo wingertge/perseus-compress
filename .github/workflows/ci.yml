@@ -51,4 +51,4 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.target }}
           components: clippy
-      - run: cargo clippy --target ${{ matrix.target }} --feature ${{ matrix.feature }} -- -D warnings
+      - run: cargo clippy --target ${{ matrix.target }} --features ${{ matrix.feature }} -- -D warnings
