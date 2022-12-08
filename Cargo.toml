@@ -3,6 +3,14 @@ name = "perseus-compress"
 version = "0.1.0"
 edition = "2021"
 
+license = "MIT OR Apache-2.0"
+description = "A plugin for Perseus that automatically compresses static files"
+repository = "https://github.com/wingertge/perseus-compress"
+readme = "README.md"
+keywords = ["webdev", "wasm", "perseus"]
+categories = ["web-programming", "development-tools", "wasm"]
+exclude = [".github/*", ".idea/*"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
