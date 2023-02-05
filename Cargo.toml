@@ -15,7 +15,7 @@ exclude = [".github/*", ".idea/*"]
 
 [dependencies]
 glob = "0.3"
-perseus = { git = "https://github.com/framesurge/perseus.git" }
+perseus = "0.4.0-beta.17"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 brotli = { version = "3", default-features = false, features = ["std"], optional = true }

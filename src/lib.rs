@@ -39,11 +39,8 @@
 //! site, make sure you do a clean build.
 //!
 
-use perseus::{
-    plugins::{empty_control_actions_registrar, Plugin, PluginEnv},
-    Html,
-};
-#[cfg(not(target_arch = "wasm32"))]
+use perseus::plugins::{empty_control_actions_registrar, Plugin, PluginEnv};
+#[cfg(engine)]
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -97,12 +94,12 @@ impl Default for CompressionOptions<&'static str> {
 }
 
 /// Plugin constructor
-pub fn get_compression_plugin<G: Html, M: AsRef<str> + Send>() -> Plugin<G, CompressionOptions<M>> {
+pub fn get_compression_plugin<M: AsRef<str> + Send + Sync>() -> Plugin<CompressionOptions<M>> {
     #[allow(unused_mut)]
     Plugin::new(
         "perseus-compress",
         |mut actions| {
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(engine)]
             {
                 use perseus::plugins::PluginAction;
                 actions
@@ -135,10 +132,10 @@ pub fn get_compression_plugin<G: Html, M: AsRef<str> + Send>() -> Plugin<G, Comp
     )
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(engine)]
 fn compress_everything<M: AsRef<str> + Send>(
     options: &CompressionOptions<M>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     use std::collections::HashSet;
     use std::fs::File;
 
@@ -169,7 +166,7 @@ fn compress_everything<M: AsRef<str> + Send>(
     Ok(())
 }
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "brotli"))]
+#[cfg(all(engine, feature = "brotli"))]
 fn compressed_path(original_path: &Path) -> PathBuf {
     let mut path = original_path.parent().unwrap().to_path_buf();
     path.push(format!(
@@ -179,7 +176,7 @@ fn compressed_path(original_path: &Path) -> PathBuf {
     path
 }
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "gzip"))]
+#[cfg(all(engine, feature = "gzip"))]
 fn compressed_path(original_path: &Path) -> PathBuf {
     let mut path = original_path.parent().unwrap().to_path_buf();
     path.push(format!(
@@ -189,31 +186,25 @@ fn compressed_path(original_path: &Path) -> PathBuf {
     path
 }
 
-#[cfg(all(
-    not(target_arch = "wasm32"),
-    not(any(feature = "gzip", feature = "brotli"))
-))]
+#[cfg(all(engine, not(any(feature = "gzip", feature = "brotli"))))]
 fn compressed_path(_original_path: &Path) -> PathBuf {
     unimplemented!(
         "No compression algorithm set. Please use either the 'gzip' or 'brotli' feature."
     );
 }
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "brotli"))]
+#[cfg(all(engine, feature = "brotli"))]
 fn compressor(file: &mut impl Write) -> impl Write + '_ {
     use brotli::enc::BrotliEncoderParams;
     brotli::CompressorWriter::with_params(file, 4096, &BrotliEncoderParams::default())
 }
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "gzip"))]
+#[cfg(all(engine, feature = "gzip"))]
 fn compressor(file: &mut impl Write) -> impl Write + '_ {
     flate2::write::GzEncoder::new(file, flate2::Compression::default())
 }
 
-#[cfg(all(
-    not(target_arch = "wasm32"),
-    not(any(feature = "gzip", feature = "brotli"))
-))]
+#[cfg(all(engine, not(any(feature = "gzip", feature = "brotli"))))]
 fn compressor(_file: &mut impl Write) -> std::fs::File {
     unimplemented!(
         "No compression algorithm set. Please use either the 'gzip' or 'brotli' feature."
